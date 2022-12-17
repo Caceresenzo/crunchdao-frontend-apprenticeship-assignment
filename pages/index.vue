@@ -3,14 +3,31 @@
     <v-container>
       <v-row>
         <v-col cols="12" sm="6">
-          <v-card title="Left Column" :text="lorem" />
+          <v-card>
+            <v-card-title> Pending </v-card-title>
+            <v-card-subtitle>
+              <v-text-field
+                v-model="text"
+                variant="outlined"
+                density="compact"
+                hide-details
+                @keydown.enter="create"
+              />
+            </v-card-subtitle>
+            <task-list :items="pending" @toggle="toggle" />
+          </v-card>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-card title="Right Column" :text="lorem" />
+          <v-card title="Completed">
+            <task-list :items="completed" @toggle="toggle" />
+          </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card title="Simple Chart">
-            <apexchart type="pie" height="300" :options="chartOptions" :series="series" />
+          <v-card title="Chart">
+            <task-chart
+              :pending="pending.length"
+              :completed="completed.length"
+            />
           </v-card>
         </v-col>
       </v-row>
@@ -19,16 +36,34 @@
 </template>
 
 <script setup lang="ts">
-const lorem = ref(
-  "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia ullam ducimus dolores voluptates, itaque assumenda temporibus id rem nulla praesentium commodi harum non tenetur? Exercitationem voluptatum dolorum blanditiis rem ducimus."
-);
+import { Task } from "@/types/Task";
 
-const chartOptions = reactive({
-  labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
-  theme: {
-    mode: "dark"
+const text = ref("");
+
+const todos = reactive(Array<Task>());
+
+const pending = computed(() => todos.filter(({ done }) => !done));
+const completed = computed(() => todos.filter(({ done }) => done));
+
+const toggle = (taskId: number) => {
+  const task = todos.find(({ id }) => id === taskId);
+
+  if (task) {
+    task.done = !task.done;
   }
-});
+};
 
-const series = reactive([44, 55, 13, 43, 22]);
+const create = () => {
+  if (!text.value) {
+    return;
+  }
+
+  todos.push({
+    id: todos.length,
+    text: text.value,
+    done: false,
+  });
+
+  text.value = "";
+};
 </script>
